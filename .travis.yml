@@ -11,7 +11,7 @@ install:
     - yarn
     - pip install --user awscli
     - export PATH=$PATH:$HOME/.local/bin
-deploy:
+script:
     - GIT_HEAD="$(git rev-parse --short HEAD)"
     - eval ${DOCKER_LOGIN}
     - docker build --no-cache -t $DOCKER_IMAGE_NAME:latest -t $DOCKER_IMAGE_NAME:$GIT_HEAD --build-arg GIT_HEAD=$GIT_HEAD .
