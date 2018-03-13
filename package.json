@@ -1,0 +1,44 @@
+{
+    "name": "got-api-types",
+    "version": "0.0.1",
+    "description": "Api endpoint for creating and fetching type declarations",
+    "main": "index.ts",
+    "scripts": {
+        "start": "nodemon",
+        "prestart:prod": "tsc",
+        "start:prod": "npm run prestart:prod && node dist/main.js"
+    },
+    "dependencies": {
+        "@nestjs/common": "4.6.5",
+        "@nestjs/core": "4.6.5",
+        "@nestjs/microservices": "4.6.5",
+        "@nestjs/testing": "4.6.1",
+        "@nestjs/websockets": "4.6.5",
+        "@nestjs/swagger": "1.1.4",
+        "aws-sdk": "2.207.0",
+        "redis": "2.8.0",
+        "reflect-metadata": "0.1.12",
+        "rxjs": "5.5.6",
+        "typescript": "2.7.2"
+    },
+    "devDependencies": {
+        "@types/node": "9.4.6",
+        "nodemon": "1.17.1",
+        "ts-node": "5.0.1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/vinnichase/got-api-types.git"
+    },
+    "keywords": [
+        "got",
+        "api",
+        "types"
+    ],
+    "author": "Vincenz Koop",
+    "license": "ISC",
+    "bugs": {
+        "url": "https://github.com/vinnichase/got-api-types/issues"
+    },
+    "homepage": "https://github.com/vinnichase/got-api-types#readme"
+}
