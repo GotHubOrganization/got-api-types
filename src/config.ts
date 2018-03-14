@@ -4,7 +4,7 @@
 export class Config {
     public static get APP(): any {
         return {
-            SERVICE_PORT: process.env['SERVICE_PORT'] || 8080,
+            SERVICE_PORT: process.env['SERVICE_PORT'] || 80,
             TYPES_BUCKET_NAME: process.env['TYPES_BUCKET_NAME'] || 'gothub-types-dev',
             AWS_REGION: process.env['AWS_REGION'] || 'us-east-1',
             AWS_SIGNATURE_VERSION: process.env['AWS_SIGNATURE_VERSION'] || 'v4',
