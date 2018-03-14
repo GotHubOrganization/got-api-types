@@ -5,7 +5,7 @@ import { GotTypeDto } from './dto/got-type.dto';
 import { TransformInterceptor } from '../common/interceptors/transform.interceptor';
 import { GotTypeService } from './got-type.service';
 
-@Controller('type')
+@Controller('types/type')
 @UseInterceptors(TransformInterceptor)
 export class GotTypeController {
 
