@@ -6,6 +6,7 @@ import { TransformInterceptor } from '../common/interceptors/transform.intercept
 import { GotTypeService } from './got-type.service';
 import { GotTypeRequestDto } from './dto/got-type-request.dto';
 import { GotPropertyDto } from './dto/got-property.dto';
+const util = require('util')
 
 @Controller('type')
 @UseInterceptors(TransformInterceptor)
@@ -20,27 +21,38 @@ export class GotTypeController {
     }
 
     @Put('/')
-    public putType(@Body() body: GotTypeDto[]): Promise<string[]> {
-        return Promise.all(body.map(async (gotType) => {
-            // console.log(gotType);
-            this.extractObjects(gotType);
-            return this.gotTypeService.put(gotType);
+    public putType(@Body() body: GotTypeDto[]): Promise<any[]> {
+        let gotTypesFlattened: GotTypeDto[] = new Array();
+        for (let gotTypeObject of body) {
+            gotTypesFlattened.push.apply(gotTypesFlattened, this.extractObjects(gotTypeObject));
+        }
+        return Promise.all(gotTypesFlattened.map(async (gotTypeFlattened) => {
+            return this.gotTypeService.put(gotTypeFlattened);
         }))
         .then(results => {
             return results;
         });
     }
 
+    /**
+     * Receives GotType Object, which might have subobject-definitions in it 
+     * and extracts those definitions. Then returns an GotType Array
+     * with only flat objects 
+     * @param gotType
+     */
     private extractObjects(gotType: GotTypeDto): GotTypeDto[]  {
-        // console.log(gotType);
+        let resultArr: any[] = new Array();
         for (let property of gotType.properties) {
             if (property.type.hasOwnProperty('name')) {
-                
-                console.log(typeof property.type);
+                if (property.type instanceof Object) {
+                    let gotTypeParsed: GotTypeDto = property['type'] as GotTypeDto;
+                    property.type = gotTypeParsed.name;
+                    return this.extractObjects(gotTypeParsed).concat(gotType);
+                }
             }
-            // console.log(property.name);
         }
-        return null;
+        resultArr.push(gotType);
+        return resultArr;
     }
 }
 

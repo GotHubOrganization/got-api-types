@@ -11,7 +11,7 @@ export class GotPropertyDto {
 
     @ApiModelProperty({ type: String })
     @IsNotEmpty()
-    readonly type: string | GotTypeDto;
+    type: string|GotTypeDto;
 
     @ApiModelProperty({ type: String })
     readonly view?: string;
