@@ -3,9 +3,13 @@ import { Config } from '../config';
 import { HttpException } from '@nestjs/common';
 import { S3Utils } from '../common/utils/s3-utils';
 import { GotTypeDto } from './dto/got-type.dto';
+const util = require('util')
 
 @Component()
 export class GotTypeService {
+
+    //helper variable for the already fetched object definitions, to not fetch them multiple times
+    private fetchedObjectNames: any = {}; 
 
     /**
      * constructor
@@ -34,14 +38,75 @@ export class GotTypeService {
      * @param gotTypeName
      */
     public get(gotTypeName: string): Promise<GotTypeDto> {
+        // console.log('get' + gotTypeName);
         return this.s3Utils.getObjectFromS3(gotTypeName)
             .then(result => {
-                return JSON.parse('' + result);
+                // save retrieved definition in hash map 
+                this.fetchedObjectNames[gotTypeName] = gotTypeName;
+                return this.fetchComplexTypes(JSON.parse('' + result));
+            })
+            .then(result => {
+                console.log(util.inspect(result, false, null))
+                return null;
             })
             .catch(err => {
                 throw new HttpException('Entry not found.',
                     HttpStatus.NOT_FOUND);
             });
+    }
+
+    /**
+     * returns a type object to the corresponding key from the S3 cache
+     * Must return a promise to build a promise chain
+     * @param gotTypeName
+     */
+    public getSingleObject(gotTypeName: string): Promise<GotTypeDto> {
+        return this.s3Utils.getObjectFromS3(gotTypeName)
+            .then(result => {
+                // save retrieved definition in hash map 
+                this.fetchedObjectNames[gotTypeName] = gotTypeName;
+                return (JSON.parse('' + result));
+            })
+            .catch(err => {
+                throw new HttpException('Entry not found.',
+                    HttpStatus.NOT_FOUND);
+            });
+    }
+
+    private fetchComplexTypes(gotType: GotTypeDto): Promise<any[]> {
+        let resultArr: any[] = new Array();
+
+        return Promise.all(gotType.properties.map(async (property) => {
+            for (let property of gotType.properties) {
+                
+                // check if property type is an object reference
+                // and not a primitive type
+                if (typeof property.type === 'string'
+                        && property.type !== 'string'
+                        && property.type !== 'boolean'
+                        && property.type !== 'number') {
+                    // found complex type
+                    // check if type was already fetched
+                    if (this.fetchedObjectNames[property.name as string]) {
+                        console.log('already fetched');
+                        return;
+                    }
+                    else {
+                        return this.getSingleObject(property.name as string)
+                        .then(fetchedObject => {
+                            // console.log(util.inspect(fetchedObject, false, null))
+                            resultArr.push(fetchedObject);
+                            return Promise.resolve(resultArr.push.apply(resultArr,this.fetchComplexTypes(fetchedObject)));
+                        })
+                    }
+                }
+            }
+        }))
+        .then(result => {
+            console.log(result);
+            console.log(resultArr);
+            return Promise.resolve(resultArr);
+        })
     }
 
 }

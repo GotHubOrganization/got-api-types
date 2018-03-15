@@ -6,7 +6,6 @@ import { TransformInterceptor } from '../common/interceptors/transform.intercept
 import { GotTypeService } from './got-type.service';
 import { GotTypeRequestDto } from './dto/got-type-request.dto';
 import { GotPropertyDto } from './dto/got-property.dto';
-const util = require('util')
 
 @Controller('type')
 @UseInterceptors(TransformInterceptor)
