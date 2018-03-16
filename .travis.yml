@@ -19,4 +19,4 @@ script:
     - docker tag $DOCKER_IMAGE_NAME:latest $DOCKER_IMAGE_URL:$GIT_HEAD
     - docker push $DOCKER_IMAGE_URL:latest
     - docker push $DOCKER_IMAGE_URL:$GIT_HEAD
-    - aws cloudformation update-stack --stack-name $DOCKER_IMAGE_NAME --use-previous-template --parameters ImageTag=$GIT_HEAD
+    - aws cloudformation update-stack --region $AWS_REGION --stack-name $DOCKER_IMAGE_NAME --use-previous-template --parameters ImageTag=$GIT_HEAD
