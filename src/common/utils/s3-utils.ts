@@ -13,6 +13,7 @@ export class S3Utils {
      */
     constructor(private s3: S3,
                 private s3BucketName: string) {
+        console.log(process.env.AWS_SDK_LOAD_CONFIG);
     }
 
     /**
@@ -102,7 +103,6 @@ export class S3Utils {
         return {
             Bucket: this.s3BucketName,
             Key: key,
-
         };
     }
 }
