@@ -42,7 +42,10 @@ export class S3Utils {
      */
     public getObjectFromS3(key: string): Promise<string> {
 
-        return this.s3.getObject(this.getS3Params(key))
+        const payload = this.getS3Params(key);
+
+        console.log(payload);
+        return this.s3.getObject(payload)
             .promise()
             .then((data: aws.S3.Types.GetObjectOutput) => {
                 console.log(`Found Entry ${data.Body.toString()}`);
