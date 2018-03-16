@@ -39,7 +39,7 @@ export class GotTypeService {
                 return JSON.parse('' + result);
             })
             .catch(err => {
-                throw new HttpException('Entry not found.',
+                throw new HttpException(err,
                     HttpStatus.NOT_FOUND);
             });
     }
