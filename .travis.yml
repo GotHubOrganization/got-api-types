@@ -14,7 +14,7 @@ install:
 script:
     - GIT_HEAD="$(git rev-parse --short HEAD)"
     - eval ${DOCKER_LOGIN}
-    - aws ecs update-service --service $DOCKER_IMAGE_NAME --force-new-deployment
+    - aws ecs update-service --region $AWS_REGION --service $DOCKER_IMAGE_NAME --force-new-deployment
     - docker build --no-cache -t $DOCKER_IMAGE_NAME:latest -t $DOCKER_IMAGE_NAME:$GIT_HEAD --build-arg GIT_HEAD=$GIT_HEAD .
     - docker tag $DOCKER_IMAGE_NAME:latest $DOCKER_IMAGE_URL:latest
     - docker tag $DOCKER_IMAGE_NAME:latest $DOCKER_IMAGE_URL:$GIT_HEAD
