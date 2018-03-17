@@ -41,10 +41,7 @@ export class S3Utils {
      * @returns {Promise<string>}
      */
     public getObjectFromS3(key: string): Promise<string> {
-
         const payload = this.getS3Params(key);
-
-        console.log(payload);
         return this.s3.getObject(payload)
             .promise()
             .then((data: aws.S3.Types.GetObjectOutput) => {
