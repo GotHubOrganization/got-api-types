@@ -18,7 +18,7 @@ export class GotTypeController {
     }
 
     @Get('/:name')
-    public getType(@Param() params: any): Promise<GotTypeDto> {
+    public getType(@Param() params: any): Promise<GotTypeDto[]> {
         return this.gotTypeService.get(params.name);
     }
 

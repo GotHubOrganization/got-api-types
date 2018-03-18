@@ -10,7 +10,8 @@ const util = require('util')
 export class GotTypeService {
 
     //helper variable for the already fetched object definitions, to not fetch them multiple times
-    private fetchedObjectNames: any = {}; 
+    private fetchedObjectNames: any = {};
+    private fetchedTypes: GotTypeDto[] = new Array(0); 
 
     /**
      * constructor
@@ -38,22 +39,33 @@ export class GotTypeService {
      * Must return a promise to build a promise chain
      * @param gotTypeName
      */
-    public get(gotTypeName: string): Promise<GotTypeDto> {
+    public get(gotTypeName: string): Promise<GotTypeDto[]> {
         // console.log('get' + gotTypeName);
-        return this.s3Utils.getObjectFromS3(gotTypeName)
+        return this.getSingleObject(gotTypeName)
             .then(result => {
-                // save retrieved definition in hash map 
-                this.fetchedObjectNames[gotTypeName] = gotTypeName;
-                return this.fetchComplexTypes(JSON.parse('' + result));
+                return this.fetchComplexTypes(result);
             })
             .then(result => {
-                console.log(util.inspect(result, false, null))
-                return null;
+                return this.fetchedTypes;
             })
             .catch(err => {
                 throw new HttpException('Entry not found.',
                     HttpStatus.NOT_FOUND);
             });
+    }
+
+    private fetchComplexTypes(gotType: GotTypeDto): Promise<any[]> {
+        return Promise.all(gotType.properties.map(async (property) => {
+            return this.fetchTypesOfProperty(property)
+                .then(result => {
+                    if (result !== null) {
+                        this.fetchComplexTypes(result);
+                    }
+                })
+        }))
+        .then(result => {
+            return Promise.resolve(null);
+        })
     }
 
     /**
@@ -64,9 +76,11 @@ export class GotTypeService {
     public getSingleObject(gotTypeName: string): Promise<GotTypeDto> {
         return this.s3Utils.getObjectFromS3(gotTypeName)
             .then(result => {
-                // save retrieved definition in hash map 
-                this.fetchedObjectNames[gotTypeName] = gotTypeName;
-                return (JSON.parse('' + result));
+                // save retrieved definition in hash map
+                let gotTypeObject: GotTypeDto = JSON.parse(result);
+                this.fetchedObjectNames[gotTypeObject.name] = gotTypeObject.name;
+                this.fetchedTypes.push(gotTypeObject);
+                return gotTypeObject;
             })
             .catch(err => {
                 throw new HttpException('Entry not found.',
@@ -74,38 +88,15 @@ export class GotTypeService {
             });
     }
 
-    private fetchComplexTypes(gotType: GotTypeDto): Promise<any[]> {
-        let resultArr: any[] = new Array();
-
-        return Promise.all(gotType.properties.map(async (property) => {
-            return this.fetchComplexTypesOfProperty(property)
-                .then(result => {
-                    if (!result) {
-                        return Promise.resolve(null);
-                    }
-                    else {
-                        return Promise.resolve(resultArr.push.apply(resultArr,this.fetchComplexTypes(result)));
-                    }
-                })
-        }))
-        .then(result => {
-            console.log(result);
-            console.log(resultArr);
-            return Promise.resolve(resultArr);
-        })
-    }
-
-    private fetchComplexTypesOfProperty(property: GotPropertyDto): Promise<GotTypeDto> {
+    private fetchTypesOfProperty(property: GotPropertyDto): Promise<GotTypeDto> {
         // check if property type is an object reference
         // and not a primitive type
-        if (typeof property.type === 'string'
-                && property.type !== 'string'
-                && property.type !== 'boolean'
-                && property.type !== 'number') {
+        if (property.type as string != 'string'
+                && property.type as string != 'boolean'
+                && property.type as string != 'number') {
             // found complex type
             // check if type was already fetched
             if (this.fetchedObjectNames[property.name as string]) {
-                console.log('already fetched');
                 return Promise.resolve(null);
             }
             else {
@@ -113,7 +104,7 @@ export class GotTypeService {
             }
         }
         else {
-            return null;
+            return Promise.resolve(null);
         }        
     }
 
