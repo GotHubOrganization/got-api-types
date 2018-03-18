@@ -35,15 +35,16 @@ export class GotTypeService {
     }
 
     /**
-     * returns a type object to the corresponding key from the S3 cache
-     * Must return a promise to build a promise chain
+     * Fetches the requested GotTypeObject first and then fetches all the referenced objects if necessary
+     * returns everything as a GotTypeObject array
      * @param gotTypeName
+     * @returns Promise<GotTypeDto[]>
      */
     public get(gotTypeName: string): Promise<GotTypeDto[]> {
         // console.log('get' + gotTypeName);
-        return this.getSingleObject(gotTypeName)
+        return this.fetchGotTypeObject(gotTypeName)
             .then(result => {
-                return this.fetchComplexTypes(result);
+                return this.fetchPropertyTypes(result);
             })
             .then(result => {
                 return this.fetchedTypes;
@@ -54,26 +55,45 @@ export class GotTypeService {
             });
     }
 
-    private fetchComplexTypes(gotType: GotTypeDto): Promise<any[]> {
-        return Promise.all(gotType.properties.map(async (property) => {
-            return this.fetchTypesOfProperty(property)
-                .then(result => {
-                    if (result !== null) {
-                        this.fetchComplexTypes(result);
-                    }
-                })
+    /**
+     * checks gotTypeObject properties for complex types and fetches them if necessary
+     * @param gotTypeObject
+     * @returns Promise<void>
+     */
+    private fetchPropertyTypes(gotTypeObject: GotTypeDto): Promise<void> {
+        return Promise.all(gotTypeObject.properties.map(async (property) => {
+            // check if property type is an object reference
+            // and not a primitive type
+            if (property.type as string != 'string'
+                    && property.type as string != 'boolean'
+                    && property.type as string != 'number') {
+                // found complex type
+                // check if type was already fetched
+                if (!this.fetchedObjectNames[property.name as string]) {
+                    return this.fetchGotTypeObject(property.name as string)
+                    .then(result => {
+                        if (result !== null) {
+                            this.fetchPropertyTypes(result);
+                        }
+                    })
+                }
+                else {
+                    Promise.resolve();
+                }
+            }
         }))
         .then(result => {
-            return Promise.resolve(null);
+            return Promise.resolve();
         })
     }
 
     /**
-     * returns a type object to the corresponding key from the S3 cache
+     * returns a got type object to the corresponding key from the S3 cache
      * Must return a promise to build a promise chain
      * @param gotTypeName
+     * @returns Promise<GotTypeDto>
      */
-    public getSingleObject(gotTypeName: string): Promise<GotTypeDto> {
+    public fetchGotTypeObject(gotTypeName: string): Promise<GotTypeDto> {
         return this.s3Utils.getObjectFromS3(gotTypeName)
             .then(result => {
                 // save retrieved definition in hash map
@@ -87,25 +107,4 @@ export class GotTypeService {
                     HttpStatus.NOT_FOUND);
             });
     }
-
-    private fetchTypesOfProperty(property: GotPropertyDto): Promise<GotTypeDto> {
-        // check if property type is an object reference
-        // and not a primitive type
-        if (property.type as string != 'string'
-                && property.type as string != 'boolean'
-                && property.type as string != 'number') {
-            // found complex type
-            // check if type was already fetched
-            if (this.fetchedObjectNames[property.name as string]) {
-                return Promise.resolve(null);
-            }
-            else {
-                return this.getSingleObject(property.name as string);
-            }
-        }
-        else {
-            return Promise.resolve(null);
-        }        
-    }
-
 }
