@@ -4,14 +4,11 @@ import { HttpException } from '@nestjs/common';
 import { S3Utils } from '../common/utils/s3-utils';
 import { GotTypeDto } from './dto/got-type.dto';
 import { GotPropertyDto } from './dto/got-property.dto';
-const util = require('util')
+import { GotPrimitiveTypes } from './dto/enums/got-primitive-types.enum';
+import { Map } from '../common/utils/map';
 
 @Component()
 export class GotTypeService {
-
-    //helper variable for the already fetched object definitions, to not fetch them multiple times
-    private fetchedObjectNames: any = {};
-    private fetchedTypes: GotTypeDto[] = new Array(0); 
 
     /**
      * constructor
@@ -38,53 +35,10 @@ export class GotTypeService {
      * Fetches the requested GotTypeObject first and then fetches all the referenced objects if necessary
      * returns everything as a GotTypeObject array
      * @param gotTypeName
-     * @returns Promise<GotTypeDto[]>
+     * @returns Promise<Map<GotTypeDto>>
      */
-    public get(gotTypeName: string): Promise<GotTypeDto[]> {
-        // console.log('get' + gotTypeName);
-        return this.fetchGotTypeObject(gotTypeName)
-            .then(result => {
-                return this.fetchPropertyTypes(result);
-            })
-            .then(result => {
-                return this.fetchedTypes;
-            })
-            .catch(err => {
-                throw new HttpException('Entry not found.',
-                    HttpStatus.NOT_FOUND);
-            });
-    }
-
-    /**
-     * checks gotTypeObject properties for complex types and fetches them if necessary
-     * @param gotTypeObject
-     * @returns Promise<void>
-     */
-    private fetchPropertyTypes(gotTypeObject: GotTypeDto): Promise<void> {
-        return Promise.all(gotTypeObject.properties.map(async (property) => {
-            // check if property type is an object reference
-            // and not a primitive type
-            if (property.type as string != 'string'
-                    && property.type as string != 'boolean'
-                    && property.type as string != 'number') {
-                // found complex type
-                // check if type was already fetched
-                if (!this.fetchedObjectNames[property.type as string]) {
-                    return this.fetchGotTypeObject(property.type as string)
-                    .then(result => {
-                        if (result !== null) {
-                            this.fetchPropertyTypes(result);
-                        }
-                    })
-                }
-                else {
-                    Promise.resolve();
-                }
-            }
-        }))
-        .then(result => {
-            return Promise.resolve();
-        })
+    public get(gotTypeName: string): Promise<Map<GotTypeDto>> {
+        return this.fetchGotTypeObject(gotTypeName);
     }
 
     /**
@@ -93,18 +47,37 @@ export class GotTypeService {
      * @param gotTypeName
      * @returns Promise<GotTypeDto>
      */
-    public fetchGotTypeObject(gotTypeName: string): Promise<GotTypeDto> {
+    private async fetchGotTypeObject(gotTypeName: string, fetchedTypes: Map<GotTypeDto> = {}): Promise<Map<GotTypeDto>> {
         return this.s3Utils.getObjectFromS3(gotTypeName)
             .then(result => {
-                // save retrieved definition in hash map
                 let gotTypeObject: GotTypeDto = JSON.parse(result);
-                this.fetchedObjectNames[gotTypeObject.name] = gotTypeObject.name;
-                this.fetchedTypes.push(gotTypeObject);
-                return gotTypeObject;
+                fetchedTypes[gotTypeObject.name] = gotTypeObject;
+                return this.fetchPropertyTypes(gotTypeObject, fetchedTypes).then(() => {
+                    return fetchedTypes;
+                });
             })
             .catch(err => {
-                throw new HttpException(err,
-                    HttpStatus.NOT_FOUND);
+                console.log(err);
+                console.log(gotTypeName);
+                throw new HttpException(gotTypeName + ' not found.', HttpStatus.NOT_FOUND);
             });
+    }
+
+    /**
+     * checks gotTypeObject properties for complex types and fetches them if necessary
+     * @param gotTypeObject
+     * @returns Promise<void>
+     */
+    private async fetchPropertyTypes(gotTypeObject: GotTypeDto, fetchedTypes: Map<GotTypeDto> = {}): Promise<void> {
+        let fetchPropertyTypePromises: Promise<any>[] = [];
+
+        gotTypeObject.properties.filter((property) => {
+            return GotPrimitiveTypes.contains(property.type as string) &&
+                !fetchedTypes[property.type as string];
+        }).forEach((property) => {
+            fetchPropertyTypePromises.push(this.fetchGotTypeObject(property.type as string, fetchedTypes));
+        });
+
+        await Promise.all(fetchPropertyTypePromises);
     }
 }
