@@ -103,7 +103,7 @@ export class GotTypeService {
                 return gotTypeObject;
             })
             .catch(err => {
-                throw new HttpException('Entry not found.',
+                throw new HttpException(err,
                     HttpStatus.NOT_FOUND);
             });
     }

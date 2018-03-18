@@ -9,6 +9,7 @@ async function bootstrap() {
 
     AWS.config.region = Config.APP.AWS_REGION;
     AWS.config.signatureVersion = Config.APP.AWS_SIGNATURE_VERSION;
+    // console.log(AWS.config.credentials.constructor);
 
     const app = await NestFactory.create(ApplicationModule);
 
