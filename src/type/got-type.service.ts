@@ -58,7 +58,6 @@ export class GotTypeService {
             })
             .catch(err => {
                 console.log(err);
-                console.log(gotTypeName);
                 throw new HttpException(gotTypeName + ' not found.', HttpStatus.NOT_FOUND);
             });
     }
