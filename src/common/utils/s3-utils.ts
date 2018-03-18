@@ -41,16 +41,16 @@ export class S3Utils {
      * @returns {Promise<string>}
      */
     public getObjectFromS3(key: string): Promise<string> {
-        return this.s3.getObject(this.getS3Params(key))
+        const payload = this.getS3Params(key);
+        return this.s3.getObject(payload)
             .promise()
             .then((data: aws.S3.Types.GetObjectOutput) => {
                 console.log(`Found Entry ${data.Body.toString()}`);
                 return data.Body.toString();
             })
-            .catch(() => {
-                console.log(`Not Found Entry`);
-                throw new HttpException('Not found entry' ,
-                HttpStatus.NOT_FOUND);
+            .catch((err) => {
+                throw new HttpException(err ,
+                HttpStatus.INTERNAL_SERVER_ERROR);
             });
 
     }
@@ -102,7 +102,6 @@ export class S3Utils {
         return {
             Bucket: this.s3BucketName,
             Key: key,
-
         };
     }
 }
