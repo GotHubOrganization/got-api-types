@@ -69,8 +69,8 @@ export class GotTypeService {
                     && property.type as string != 'number') {
                 // found complex type
                 // check if type was already fetched
-                if (!this.fetchedObjectNames[property.name as string]) {
-                    return this.fetchGotTypeObject(property.name as string)
+                if (!this.fetchedObjectNames[property.type as string]) {
+                    return this.fetchGotTypeObject(property.type as string)
                     .then(result => {
                         if (result !== null) {
                             this.fetchPropertyTypes(result);
