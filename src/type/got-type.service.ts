@@ -3,6 +3,7 @@ import { Config } from '../config';
 import { HttpException } from '@nestjs/common';
 import { S3Utils } from '../common/utils/s3-utils';
 import { GotTypeDto } from './dto/got-type.dto';
+import { GotPropertyDto } from './dto/got-property.dto';
 const util = require('util')
 
 @Component()
@@ -77,36 +78,43 @@ export class GotTypeService {
         let resultArr: any[] = new Array();
 
         return Promise.all(gotType.properties.map(async (property) => {
-            for (let property of gotType.properties) {
-                
-                // check if property type is an object reference
-                // and not a primitive type
-                if (typeof property.type === 'string'
-                        && property.type !== 'string'
-                        && property.type !== 'boolean'
-                        && property.type !== 'number') {
-                    // found complex type
-                    // check if type was already fetched
-                    if (this.fetchedObjectNames[property.name as string]) {
-                        console.log('already fetched');
-                        return;
+            return this.fetchComplexTypesOfProperty(property)
+                .then(result => {
+                    if (!result) {
+                        return Promise.resolve(null);
                     }
                     else {
-                        return this.getSingleObject(property.name as string)
-                        .then(fetchedObject => {
-                            // console.log(util.inspect(fetchedObject, false, null))
-                            resultArr.push(fetchedObject);
-                            return Promise.resolve(resultArr.push.apply(resultArr,this.fetchComplexTypes(fetchedObject)));
-                        })
+                        return Promise.resolve(resultArr.push.apply(resultArr,this.fetchComplexTypes(result)));
                     }
-                }
-            }
+                })
         }))
         .then(result => {
             console.log(result);
             console.log(resultArr);
             return Promise.resolve(resultArr);
         })
+    }
+
+    private fetchComplexTypesOfProperty(property: GotPropertyDto): Promise<GotTypeDto> {
+        // check if property type is an object reference
+        // and not a primitive type
+        if (typeof property.type === 'string'
+                && property.type !== 'string'
+                && property.type !== 'boolean'
+                && property.type !== 'number') {
+            // found complex type
+            // check if type was already fetched
+            if (this.fetchedObjectNames[property.name as string]) {
+                console.log('already fetched');
+                return Promise.resolve(null);
+            }
+            else {
+                return this.getSingleObject(property.name as string);
+            }
+        }
+        else {
+            return null;
+        }        
     }
 
 }
