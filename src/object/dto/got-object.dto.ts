@@ -16,6 +16,6 @@ export class GotObjectDto {
 
     @ApiModelProperty({ type: Object })
     @Type(() => Object)
-    readonly object: any;
+    readonly data: any;
 
 }
