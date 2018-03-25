@@ -7,8 +7,8 @@ import {
 } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { plainToClass } from 'class-transformer';
-import { GotTypeDto } from './dto/got-type.dto';
-import { Map } from '../common/utils/map';
+import { GotTypeDto } from '../dto/got-type.dto';
+import { Map } from '../../common/utils/map';
 
 /**
  * Pipe implementation that is called to validate objects based on the class-validator decorators
