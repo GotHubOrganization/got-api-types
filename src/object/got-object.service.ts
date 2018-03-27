@@ -78,15 +78,29 @@ export class GotObjectService {
      * @param gotObject
      * @returns Promise<void>
      */
-    private validateStructure(gotObject: GotObjectDto, gotTypes: Map<GotTypeDto>): Promise<void> {
+    private validateStructure(gotObject: GotObjectDto, gotTypes: Map<GotTypeDto>): void {
         console.log('LOG');
+        let gotType: GotTypeDto = gotTypes[gotObject.schemaName];
+        if (!gotType) {
+            throw new HttpException('Schema not found: ' + gotObject.schemaName ,
+                HttpStatus.BAD_REQUEST);
+        }
+        // iterate through gotType-Schema and check corresponding fields in gotObject data
+        for (let gotTypeProperty of gotType.properties) {
+            //if complex type then do recursive check
+            if (gotTypeProperty instanceof Object) {
+                this.validateStructure()
+            }
+            // primitive type, check if field was submitted in data (when field was required)
+            // keep in mind: what about fields that have been submitted in data but are NOT in the schema structure
+            gotType
+        }
+
+
+
+
         // iterate through object data and compare to given structure based on type definition
         for (const key of Object.keys(gotObject.data)) {
-            let gotType: GotTypeDto = gotTypes[gotObject.schemaName];
-            if (!gotType) {
-                throw new HttpException('Schema not found: ' + gotObject.schemaName ,
-                    HttpStatus.BAD_REQUEST);
-            }
             if (!gotType.properties[key]) {
                 throw new HttpException('Property not found: ' + key ,
                 HttpStatus.BAD_REQUEST);               
