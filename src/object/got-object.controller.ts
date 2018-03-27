@@ -24,7 +24,7 @@ export class GotObjectController {
     @ApiResponse({ status: 201, description: 'The record has been successfully created.' })
     @ApiResponse({ status: 400, description: 'Bad Request.' })
     @Post('/')
-    @UsePipes(new GotSchemaValidationPipe())
+    // @UsePipes(new GotSchemaValidationPipe(this.gotTypeService))
     public storeObject(@Body() gotObject: GotObjectDto): Promise<any> {
         gotObject.id = this.getNewObjectId();
         gotObject.timestamp = new Date();

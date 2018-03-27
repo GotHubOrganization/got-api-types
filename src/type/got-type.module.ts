@@ -21,5 +21,6 @@ const s3UtilsFactory = {
         GotTypeService, 
         s3UtilsFactory
     ],
+    exports: [GotTypeService]
 })
 export class GotTypeModule {}

@@ -4,6 +4,7 @@ import { GotObjectService } from './got-object.service';
 import { S3Utils } from '../common/utils/s3-utils';
 import { Config } from '../config';
 import * as AWS from 'aws-sdk';
+import { GotTypeModule } from '../type/got-type.module';
 
 const s3UtilsFactory = {
     provide: S3Utils,
@@ -15,7 +16,7 @@ const s3UtilsFactory = {
 };
 
 @Module({
-    imports: [],
+    imports: [GotTypeModule],
     controllers: [GotObjectController],
     components: [
         GotObjectService, 
