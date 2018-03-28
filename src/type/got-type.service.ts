@@ -71,7 +71,7 @@ export class GotTypeService {
         let fetchPropertyTypePromises: Promise<any>[] = [];
 
         gotTypeObject.properties.filter((property) => {
-            return GotPrimitiveTypes.contains(property.type as string) &&
+            return !GotPrimitiveTypes.contains(property.type as string) &&
                 !fetchedTypes[property.type as string];
         }).forEach((property) => {
             fetchPropertyTypePromises.push(this.fetchGotTypeObject(property.type as string, fetchedTypes));

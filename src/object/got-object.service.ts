@@ -1,12 +1,13 @@
-import { Component, HttpStatus } from '@nestjs/common';
+import { Component, HttpStatus, HttpException } from '@nestjs/common';
 import { Config } from '../config';
-import { HttpException } from '@nestjs/common';
 import { S3Utils } from '../common/utils/s3-utils';
 import { GotObjectDto } from './dto/got-object.dto';
 import { Map } from '../common/utils/map';
 import { GotTypeService } from '../type/got-type.service';
 import { GotTypeDto } from '../type/dto/got-type.dto';
 import { GotPropertyDto } from '../type/dto/got-property.dto';
+import { GotPrimitiveTypes } from '../type/dto/enums/got-primitive-types.enum';
+const util = require('util');
 
 @Component()
 export class GotObjectService {
@@ -61,14 +62,8 @@ export class GotObjectService {
         return this.gotTypeService.get(gotObject.schemaName)
         .then(gotTypes => {
             // fetched all respective gotTypeDefinitions, do structure validation based on them
-            this.validateStructure(gotObject, gotTypes);
-            let errors: any[] = new Array(0);
-            //TODO implement validation and fill error array with errors
-            if (errors.length > 0) {
-                throw new HttpException('Schema Validation failed: ' + errors[0] ,
-                    HttpStatus.BAD_REQUEST);
-            }
-            return null;           
+            this.validateStructure(gotObject.data[gotObject.schemaName], gotObject.schemaName, gotTypes);
+            return;           
         })
     }
 
@@ -78,45 +73,55 @@ export class GotObjectService {
      * @param gotObject
      * @returns Promise<void>
      */
-    private validateStructure(gotObject: GotObjectDto, gotTypes: Map<GotTypeDto>): void {
-        console.log('LOG');
-        let gotType: GotTypeDto = gotTypes[gotObject.schemaName];
+    private validateStructure(gotData: any, schemaName: string, gotTypes: Map<GotTypeDto>): void {
+        console.log('validateStructure(' + gotData + ',' + schemaName + ',' + gotTypes);
+        console.log(gotData);
+        if (!gotData[schemaName]) {
+            throw new HttpException('Object not found: ' + schemaName ,
+                HttpStatus.BAD_REQUEST);            
+        }
+        let gotType: GotTypeDto = gotTypes[schemaName];
         if (!gotType) {
-            throw new HttpException('Schema not found: ' + gotObject.schemaName ,
+            throw new HttpException('Schema not found: ' + schemaName ,
                 HttpStatus.BAD_REQUEST);
         }
         // iterate through gotType-Schema and check corresponding fields in gotObject data
-        for (let gotTypeProperty of gotType.properties) {
-            //if complex type then do recursive check
-            if (gotTypeProperty instanceof Object) {
-                this.validateStructure()
+        for (let gotProperty of gotType.properties) {
+            //if primitive type, do validation
+            if (GotPrimitiveTypes.contains(gotProperty.type as string)) {
+                this.validatePrimitiveProperty(gotProperty, gotData);
             }
-            // primitive type, check if field was submitted in data (when field was required)
-            // keep in mind: what about fields that have been submitted in data but are NOT in the schema structure
-            gotType
-        }
-
-
-
-
-        // iterate through object data and compare to given structure based on type definition
-        for (const key of Object.keys(gotObject.data)) {
-            if (!gotType.properties[key]) {
-                throw new HttpException('Property not found: ' + key ,
-                HttpStatus.BAD_REQUEST);               
+            // complex type, do recursive check
+            else {
+                console.log('gotProperty.type' + gotProperty.type as string);
+                return this.validateStructure(gotData[gotProperty.type as string], gotProperty.name as string, gotTypes);
             }
-            console.log(key, gotObject.data[key]);
         }
-        return null;
+        return;
+    }
+
+    private validatePrimitiveProperty(gotProperty: GotPropertyDto, gotData: any): void {
+        console.log('validate primitive property');
+        console.log(gotData);
+        let required: boolean = true; // TODO: change to real validation rules based on type def
+        if (required && !gotData[gotProperty.name]) {
+            throw new HttpException('Required property not found: ' + gotProperty.name ,
+            HttpStatus.BAD_REQUEST);               
+        }
+        // if field is provided, check validity
+        else if (gotData[gotProperty.name]) {
+            this.checkCustomPropertyValidations(gotProperty, gotData);
+        }
     }
 
     /**
      * Validates the gotProperty data based on the respective validation rules of the field
      * throws a Bad Request Error if validation fails
-     * @param gotObject
+     * @param gotProperty, gotData
      * @returns Promise<void>
      */
-    private validatePropertyRules(gotProperty: GotPropertyDto): Promise<void> {
+    private checkCustomPropertyValidations(gotProperty: GotPropertyDto, gotData: any): void {
+        // TODO: implement
         return null;
     }
 
