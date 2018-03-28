@@ -9,9 +9,26 @@ export class GotTypeDto {
     @IsNotEmpty()
     readonly name: string;
 
+    @ApiModelProperty({ type: Object, isArray: true })
+    readonly validators: any[];
+
     @ApiModelProperty({ type: GotPropertyDto })
     @ValidateNested()
     @Type(() => GotPropertyDto)
     readonly properties: GotPropertyDto[];
+
+    /**
+     * checks if an GotType is required or not
+     * @param object
+     * @returns boolean
+     */
+    public isRequired(): boolean {
+        this.validators.forEach(element => {
+            if (element.indexOf('required') > -1) {
+                return true;
+            }
+        });
+        return false;
+    }
 
 }

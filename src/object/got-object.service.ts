@@ -62,7 +62,8 @@ export class GotObjectService {
         return this.gotTypeService.get(gotObject.schemaName)
         .then(gotTypes => {
             // fetched all respective gotTypeDefinitions, do structure validation based on them
-            this.validateStructure(gotObject.data[gotObject.schemaName], gotObject.schemaName, gotTypes);
+            // this.validateStructure(gotObject.data, gotTypes);
+            this.validateStructure2(gotObject.data, gotTypes[gotObject.schemaName], gotTypes);
             return;           
         })
     }
@@ -70,12 +71,51 @@ export class GotObjectService {
     /**
      * Validates the gotObject data structure based on the schema structure rules
      * throws a Bad Request Error if validation fails
-     * @param gotObject
-     * @returns Promise<void>
+     * @param gotData, gotType
+     * @returns void
      */
-    private validateStructure(gotData: any, schemaName: string, gotTypes: Map<GotTypeDto>): void {
-        console.log('validateStructure(' + gotData + ',' + schemaName + ',' + gotTypes);
+    private validateStructure2(gotData: any, gotType: GotTypeDto, gotTypes: Map<GotTypeDto>): void {
+        console.log("enter validateStructure2");
+        console.log(gotType);
+        // first check if the GotType is required and not provided
+        if (gotType.isRequired && !gotData[gotType.name]) {
+            throw new HttpException('Required object not found: ' + gotType.name ,
+            HttpStatus.BAD_REQUEST);   
+        }
+        // if its provided, do further checks
+        else if (gotData[gotType.name]) {
+            console.log('object needs to be checked cuz its provided');
+            // on GotType object high-level
+            this.validateGotType(gotType, gotData);
+            // on GotProperties =>
+            // iterate through gotType-Schema and check corresponding fields in objectsToCheck data
+            for (let gotProperty of gotType.properties) {
+                //if primitive type, do validation
+                if (GotPrimitiveTypes.contains(gotProperty.type as string)) {
+                    this.validatePrimitiveProperty(gotProperty, gotData[gotType.name]);
+                }
+                // complex type, do recursive check
+                else {
+                    console.log('gotProperty.type ' + gotProperty.type as string);
+                    let nestedObjectsToCheck: any = {};
+                    nestedObjectsToCheck[gotProperty.type as string] = gotData[gotType.name][gotProperty.type as string];
+                    return this.validateStructure2(nestedObjectsToCheck, gotTypes[gotProperty.type as string], gotTypes);
+                }
+            }
+        }
+    }
+
+    /**
+     * Validates the gotObject data structure based on the schema structure rules
+     * throws a Bad Request Error if validation fails
+     * @param gotData
+     * @returns void
+     */
+    private validateStructure(gotData: any, gotTypes: Map<GotTypeDto>): void {
+        console.log('validateStructure(' + gotData + ',' + gotData.schemaName + ',' + gotTypes);
         console.log(gotData);
+        let schemaName: string = Object.keys(gotData)[0];
+        console.log('Schema name ' + schemaName);
         if (!gotData[schemaName]) {
             throw new HttpException('Object not found: ' + schemaName ,
                 HttpStatus.BAD_REQUEST);            
@@ -89,41 +129,57 @@ export class GotObjectService {
         for (let gotProperty of gotType.properties) {
             //if primitive type, do validation
             if (GotPrimitiveTypes.contains(gotProperty.type as string)) {
-                this.validatePrimitiveProperty(gotProperty, gotData);
+                this.validatePrimitiveProperty(gotProperty, gotData[schemaName]);
             }
             // complex type, do recursive check
             else {
                 console.log('gotProperty.type' + gotProperty.type as string);
-                return this.validateStructure(gotData[gotProperty.type as string], gotProperty.name as string, gotTypes);
+                let nestedGotData: any = {};
+                nestedGotData[gotProperty.type as string] = gotData[gotProperty.type as string];
+                this.validateStructure(nestedGotData, gotTypes);
             }
         }
         return;
     }
 
+    /**
+     * Validates a primitive property against a (sub)-gotData
+     * throws a Bad Request Error if validation fails
+     * @param gotProperty, gotData
+     * @returns void
+     */
     private validatePrimitiveProperty(gotProperty: GotPropertyDto, gotData: any): void {
         console.log('validate primitive property');
         console.log(gotData);
-        let required: boolean = true; // TODO: change to real validation rules based on type def
-        if (required && !gotData[gotProperty.name]) {
+        if (gotProperty.isRequired && !gotData[gotProperty.name]) {
             throw new HttpException('Required property not found: ' + gotProperty.name ,
             HttpStatus.BAD_REQUEST);               
         }
         // if field is provided, check validity
         else if (gotData[gotProperty.name]) {
-            this.checkCustomPropertyValidations(gotProperty, gotData);
+            this.validateCustomPropertyRules(gotProperty, gotData);
         }
+    }
+
+     /**
+     * Validates a got type object against a (sub)-gotData
+     * throws a Bad Request Error if validation fails
+     * @param gotProperty, gotData
+     * @returns void
+     */
+    private validateGotType(gotType: GotTypeDto, gotData: any): void {
+         // TODO: implement
+        return null;
     }
 
     /**
      * Validates the gotProperty data based on the respective validation rules of the field
      * throws a Bad Request Error if validation fails
      * @param gotProperty, gotData
-     * @returns Promise<void>
+     * @returns void
      */
-    private checkCustomPropertyValidations(gotProperty: GotPropertyDto, gotData: any): void {
+    private validateCustomPropertyRules(gotProperty: GotPropertyDto, gotData: any): void {
         // TODO: implement
         return null;
     }
-
-
 }
