@@ -7,10 +7,9 @@ import { GotTypeService } from '../type/got-type.service';
 import { GotTypeDto } from '../type/dto/got-type.dto';
 import { GotPropertyDto } from '../type/dto/got-property.dto';
 import { GotPrimitiveTypes } from '../type/dto/enums/got-primitive-types.enum';
-const util = require('util');
 
 @Component()
-export class GotObjectService {
+export class GotObjectStorageService {
 
     /**
      * constructor
@@ -64,9 +63,10 @@ export class GotObjectService {
     private validate(gotObject: GotObjectDto): Promise<void> {
         return this.gotTypeService.get(gotObject.schemaName)
         .then(gotTypes => {
+            // clone the object for validation. Has to be cloned because during the validation the object will be manipulated
+            let gotValidationClone: GotObjectDto = JSON.parse(JSON.stringify(gotObject));
             // fetched all respective gotTypeDefinitions, do structure validation based on them
-            this.validateObject(gotObject.data, gotTypes[gotObject.schemaName], gotTypes);
-            return;           
+            return this.validateObject(gotValidationClone.data, gotTypes[gotObject.schemaName], gotTypes);
         })
     }
 
@@ -79,8 +79,7 @@ export class GotObjectService {
      * @returns void
      */
     private validateObject(gotData: any, gotType: GotTypeDto, gotTypes: Map<GotTypeDto>): void {
-        console.log("enter validateStructure2");
-        console.log(gotType);
+        // validate GotType on object-level first
         this.validateGotType(gotType, gotData);
         // on GotProperties =>
         // iterate through gotType-Schema and check corresponding fields in objectsToCheck data
@@ -91,11 +90,29 @@ export class GotObjectService {
             }
             // complex type, do recursive check
             else {
-                console.log('gotProperty.type ' + gotProperty.type as string);
                 let nestedObjectsToCheck: any = {};
                 nestedObjectsToCheck[gotProperty.type as string] = gotData[gotType.name][gotProperty.type as string];
-                return this.validateObject(nestedObjectsToCheck, gotTypes[gotProperty.type as string], gotTypes);
+                this.validateObject(nestedObjectsToCheck, gotTypes[gotProperty.type as string], gotTypes);
             }
+            // remove checked attribute from verification object
+            if (gotData[gotType.name][gotProperty.name]) {
+                delete gotData[gotType.name][gotProperty.name];
+            }
+        }
+        // check if any properties have been provided that dont match the schema
+        if (!this.isEmptyObject(gotData[gotType.name])) {
+            throw new HttpException('Following property you provided does not match the ' 
+            + gotType.name + ' schema definition: ' +  JSON.stringify(Object.keys(gotData[gotType.name])[0]),
+            HttpStatus.BAD_REQUEST);   
+        }
+        if (gotData[gotType.name]) {
+            delete gotData[gotType.name];
+        }
+        //check if any objects have been provided that dont match the schema
+        if (!this.isEmptyObject(gotData)) {
+            throw new HttpException('Following objects you provided do not match the schema definition: ' 
+            +  JSON.stringify(gotData),
+            HttpStatus.BAD_REQUEST);              
         }
     }
 
@@ -114,7 +131,6 @@ export class GotObjectService {
         }
         // if its provided, do further checks
         else if (gotData[gotType.name]) {
-            console.log('object needs to be checked cuz its provided');
             // TODO: do further checks based on GotType validation definitions
         }       
     }
@@ -127,13 +143,11 @@ export class GotObjectService {
      * @returns void
      */
     private validatePrimitiveProperty(gotType: GotTypeDto, gotProperty: GotPropertyDto, gotData: any): void {
-        console.log('validate primitive property');
-        console.log(gotData);
         if (gotProperty.required && !gotData[gotProperty.name]) {
             throw new HttpException('Required property not found: ' + gotType.name + '.' + gotProperty.name ,
             HttpStatus.BAD_REQUEST);               
         }
-        // if field is provided, check validity
+        // if field is provided, check provided validation rules
         else if (gotData[gotProperty.name]) {
             this.validateCustomPropertyRules(gotProperty, gotData);
         }
@@ -148,6 +162,18 @@ export class GotObjectService {
      */
     private validateCustomPropertyRules(gotProperty: GotPropertyDto, gotData: any): void {
         // TODO: implement
-        return null;
     }
+
+    /**
+     * @param  {any} obj
+     * @returns boolean
+     */
+    private isEmptyObject(obj: any): boolean {
+        for(var prop in obj) {
+          if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+            return false;
+          }
+        }
+        return true;
+      }
 }

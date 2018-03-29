@@ -1,16 +1,16 @@
 import { Get, Controller, Param, Body, UseInterceptors, HttpException, HttpStatus, UsePipes, ValidationPipe, Post } from '@nestjs/common';
 import { GotObjectDto } from './dto/got-object.dto';
 import { TransformInterceptor } from '../common/interceptors/transform.interceptor';
-import { GotObjectService } from './got-object.service';
 import uuid = require('uuid-v4');
 import { ApiResponse } from '@nestjs/swagger';
 import { GotSchemaValidationPipe } from './pipes/got-schema-validation.pipe';
+import { GotObjectStorageService } from './got-object-storage.service';
 
 @Controller('objects/object')
 @UseInterceptors(TransformInterceptor)
 export class GotObjectController {
 
-    constructor(private gotObjectService: GotObjectService) {
+    constructor(private gotObjectStorageService: GotObjectStorageService) {
     }
 
     @ApiResponse({ status: 200, description: 'The record has been found.' })
@@ -18,7 +18,7 @@ export class GotObjectController {
     @ApiResponse({ status: 400, description: 'Bad Request.' })
     @Get('/:id')
     public getObject(@Param() params: any): Promise<GotObjectDto> {
-        return this.gotObjectService.get(params.id);
+        return this.gotObjectStorageService.get(params.id);
     }
 
     @ApiResponse({ status: 201, description: 'The record has been successfully created.' })
@@ -28,7 +28,7 @@ export class GotObjectController {
     public storeObject(@Body() gotObject: GotObjectDto): Promise<any> {
         gotObject.id = this.getNewObjectId();
         gotObject.timestamp = new Date();
-        return this.gotObjectService.store(gotObject);
+        return this.gotObjectStorageService.store(gotObject);
     }
 
     /**
