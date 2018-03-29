@@ -63,7 +63,7 @@ export class GotObjectService {
         .then(gotTypes => {
             // fetched all respective gotTypeDefinitions, do structure validation based on them
             // this.validateStructure(gotObject.data, gotTypes);
-            this.validateStructure2(gotObject.data, gotTypes[gotObject.schemaName], gotTypes);
+            this.validateStructure(gotObject.data, gotTypes[gotObject.schemaName], gotTypes);
             return;           
         })
     }
@@ -74,11 +74,11 @@ export class GotObjectService {
      * @param gotData, gotType
      * @returns void
      */
-    private validateStructure2(gotData: any, gotType: GotTypeDto, gotTypes: Map<GotTypeDto>): void {
+    private validateStructure(gotData: any, gotType: GotTypeDto, gotTypes: Map<GotTypeDto>): void {
         console.log("enter validateStructure2");
         console.log(gotType);
         // first check if the GotType is required and not provided
-        if (gotType.isRequired && !gotData[gotType.name]) {
+        if (gotType.required && !gotData[gotType.name]) {
             throw new HttpException('Required object not found: ' + gotType.name ,
             HttpStatus.BAD_REQUEST);   
         }
@@ -99,47 +99,10 @@ export class GotObjectService {
                     console.log('gotProperty.type ' + gotProperty.type as string);
                     let nestedObjectsToCheck: any = {};
                     nestedObjectsToCheck[gotProperty.type as string] = gotData[gotType.name][gotProperty.type as string];
-                    return this.validateStructure2(nestedObjectsToCheck, gotTypes[gotProperty.type as string], gotTypes);
+                    return this.validateStructure(nestedObjectsToCheck, gotTypes[gotProperty.type as string], gotTypes);
                 }
             }
         }
-    }
-
-    /**
-     * Validates the gotObject data structure based on the schema structure rules
-     * throws a Bad Request Error if validation fails
-     * @param gotData
-     * @returns void
-     */
-    private validateStructure(gotData: any, gotTypes: Map<GotTypeDto>): void {
-        console.log('validateStructure(' + gotData + ',' + gotData.schemaName + ',' + gotTypes);
-        console.log(gotData);
-        let schemaName: string = Object.keys(gotData)[0];
-        console.log('Schema name ' + schemaName);
-        if (!gotData[schemaName]) {
-            throw new HttpException('Object not found: ' + schemaName ,
-                HttpStatus.BAD_REQUEST);            
-        }
-        let gotType: GotTypeDto = gotTypes[schemaName];
-        if (!gotType) {
-            throw new HttpException('Schema not found: ' + schemaName ,
-                HttpStatus.BAD_REQUEST);
-        }
-        // iterate through gotType-Schema and check corresponding fields in gotObject data
-        for (let gotProperty of gotType.properties) {
-            //if primitive type, do validation
-            if (GotPrimitiveTypes.contains(gotProperty.type as string)) {
-                this.validatePrimitiveProperty(gotProperty, gotData[schemaName]);
-            }
-            // complex type, do recursive check
-            else {
-                console.log('gotProperty.type' + gotProperty.type as string);
-                let nestedGotData: any = {};
-                nestedGotData[gotProperty.type as string] = gotData[gotProperty.type as string];
-                this.validateStructure(nestedGotData, gotTypes);
-            }
-        }
-        return;
     }
 
     /**
@@ -151,7 +114,7 @@ export class GotObjectService {
     private validatePrimitiveProperty(gotProperty: GotPropertyDto, gotData: any): void {
         console.log('validate primitive property');
         console.log(gotData);
-        if (gotProperty.isRequired && !gotData[gotProperty.name]) {
+        if (gotProperty.required && !gotData[gotProperty.name]) {
             throw new HttpException('Required property not found: ' + gotProperty.name ,
             HttpStatus.BAD_REQUEST);               
         }

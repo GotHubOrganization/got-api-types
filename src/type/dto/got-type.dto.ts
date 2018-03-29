@@ -17,18 +17,7 @@ export class GotTypeDto {
     @Type(() => GotPropertyDto)
     readonly properties: GotPropertyDto[];
 
-    /**
-     * checks if an GotType is required or not
-     * @param object
-     * @returns boolean
-     */
-    public isRequired(): boolean {
-        this.validators.forEach(element => {
-            if (element.indexOf('required') > -1) {
-                return true;
-            }
-        });
-        return false;
-    }
+    @ApiModelProperty({ type: Boolean })
+    readonly required: boolean;
 
 }
