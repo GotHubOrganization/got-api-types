@@ -3,14 +3,13 @@ import { GotObjectDto } from './dto/got-object.dto';
 import { TransformInterceptor } from '../common/interceptors/transform.interceptor';
 import uuid = require('uuid-v4');
 import { ApiResponse } from '@nestjs/swagger';
-import { GotSchemaValidationPipe } from './pipes/got-schema-validation.pipe';
 import { GotObjectStorageService } from './got-object-storage.service';
 import { GotObjectValidationService } from './got-object-validation.service';
 
 @Controller('objects/object')
 @UseInterceptors(TransformInterceptor)
 export class GotObjectController {
-    
+
     /**
      * @param  {GotObjectValidationService} privategotObjectValidationService
      * @returns GotObjectValidationService
