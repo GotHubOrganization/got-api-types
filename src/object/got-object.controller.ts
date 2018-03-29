@@ -5,12 +5,18 @@ import uuid = require('uuid-v4');
 import { ApiResponse } from '@nestjs/swagger';
 import { GotSchemaValidationPipe } from './pipes/got-schema-validation.pipe';
 import { GotObjectStorageService } from './got-object-storage.service';
+import { GotObjectValidationService } from './got-object-validation.service';
 
 @Controller('objects/object')
 @UseInterceptors(TransformInterceptor)
 export class GotObjectController {
-
-    constructor(private gotObjectStorageService: GotObjectStorageService) {
+    
+    /**
+     * @param  {GotObjectValidationService} privategotObjectValidationService
+     * @returns GotObjectValidationService
+     */
+    constructor(private gotObjectValidationService: GotObjectValidationService, 
+        private gotObjectStorageService: GotObjectStorageService) {
     }
 
     @ApiResponse({ status: 200, description: 'The record has been found.' })
@@ -24,11 +30,13 @@ export class GotObjectController {
     @ApiResponse({ status: 201, description: 'The record has been successfully created.' })
     @ApiResponse({ status: 400, description: 'Bad Request.' })
     @Post('/')
-    // @UsePipes(new GotSchemaValidationPipe(this.gotTypeService))
     public storeObject(@Body() gotObject: GotObjectDto): Promise<any> {
         gotObject.id = this.getNewObjectId();
         gotObject.timestamp = new Date();
-        return this.gotObjectStorageService.store(gotObject);
+        return this.gotObjectValidationService.validate(gotObject)
+        .then(() => {
+            return this.gotObjectStorageService.store(gotObject);
+        });
     }
 
     /**
