@@ -14,10 +14,17 @@ import { Map } from '../../common/utils/map';
  */
 @Pipe()
 export class GotSchemaValidationPipe implements PipeTransform<any> {
-
+    
+    /**
+     * @param  {GotTypeService} privategotTypeService
+     */
     constructor(private gotTypeService: GotTypeService) {
     }
-
+    
+    /**
+     * @param  {} value
+     * @param  {ArgumentMetadata} metadata
+     */
     async transform(value, metadata: ArgumentMetadata) {
         console.log('enterin schema validation pipe');
         let errors: any[] = new Array(0);
@@ -28,7 +35,11 @@ export class GotSchemaValidationPipe implements PipeTransform<any> {
         }
         return value;
     }
-
+    
+    /**
+     * @param  {string} schemaName
+     * @returns Promise
+     */
     private fetchTypeSchemas(schemaName: string): Promise<Map<GotTypeDto>> {
         return this.gotTypeService.get(schemaName);
     }

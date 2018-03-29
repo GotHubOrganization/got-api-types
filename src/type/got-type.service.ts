@@ -12,6 +12,8 @@ export class GotTypeService {
 
     /**
      * constructor
+     * @constructor
+     * @param  {S3Utils} privates3Utils
      */
     constructor(private s3Utils: S3Utils) {
     }
@@ -19,8 +21,8 @@ export class GotTypeService {
     /**
      * puts a Type Object to S3
      * Must return a promise to build a promise chain
-     * @param gotType
-     * @returns Promise<any>
+     * @param  {GotTypeDto} gotType
+     * @returns Promise
      */
     public put(gotType: GotTypeDto): Promise<any> {
         return this.s3Utils.putObjectToS3(gotType.name, gotType,
@@ -34,7 +36,7 @@ export class GotTypeService {
     /**
      * Fetches the requested GotTypeObject first and then fetches all the referenced objects if necessary
      * returns everything as a GotTypeObject array
-     * @param gotTypeName
+     * @param  {string} gotTypeName
      * @returns Promise<Map<GotTypeDto>>
      */
     public get(gotTypeName: string): Promise<Map<GotTypeDto>> {
@@ -44,8 +46,9 @@ export class GotTypeService {
     /**
      * returns a got type object to the corresponding key from the S3 cache
      * Must return a promise to build a promise chain
-     * @param gotTypeName
-     * @returns Promise<GotTypeDto>
+     * @param  {string} gotTypeName
+     * @param  {Map<GotTypeDto>={}} fetchedTypes
+     * @returns Promise<Map<GotTypeDto>>
      */
     private async fetchGotTypeObject(gotTypeName: string, fetchedTypes: Map<GotTypeDto> = {}): Promise<Map<GotTypeDto>> {
         return this.s3Utils.getObjectFromS3(gotTypeName)
@@ -64,7 +67,8 @@ export class GotTypeService {
 
     /**
      * checks gotTypeObject properties for complex types and fetches them if necessary
-     * @param gotTypeObject
+     * @param  {GotTypeDto} gotTypeObject
+     * @param  {Map<GotTypeDto>={}} fetchedTypes
      * @returns Promise<void>
      */
     private async fetchPropertyTypes(gotTypeObject: GotTypeDto, fetchedTypes: Map<GotTypeDto> = {}): Promise<void> {

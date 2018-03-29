@@ -15,7 +15,11 @@ import { Map } from '../../common/utils/map';
  */
 @Pipe()
 export class GotTypePipe implements PipeTransform<any> {
-
+    
+    /**
+     * @param  {any[]} plainGotTypes
+     * @param  {ArgumentMetadata} metadata
+     */
     async transform(plainGotTypes: any[], metadata: ArgumentMetadata) {
         let result: Map<GotTypeDto> = {};
         for (const plainGotType of plainGotTypes) {
@@ -27,7 +31,9 @@ export class GotTypePipe implements PipeTransform<any> {
     /**
      * Receives GotType Object, which might have subobject-definitions in it 
      * and extracts those definitions. Then saves them in flattenedObjects-Array 
-     * @param plainGotType
+     * @param  {any} plainGotType
+     * @param  {Map<GotTypeDto>={}} flatGotTypes
+     * @returns void
      */
     private extractTypes(plainGotType: any, flatGotTypes: Map<GotTypeDto> = {}): void {
         for (let property of plainGotType.properties) {
