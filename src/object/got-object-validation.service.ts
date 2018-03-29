@@ -30,7 +30,7 @@ export class GotObjectValidationService {
             // clone the object for validation. Has to be cloned because during the validation the object will be manipulated
             let gotValidationClone: GotObjectDto = JSON.parse(JSON.stringify(gotObject));
             // fetched all respective gotTypeDefinitions, do structure validation based on them
-            return this.validateObject(gotValidationClone.data, gotTypes[gotObject.schemaName], gotTypes);
+            return this.validateData(gotValidationClone.data, gotTypes[gotObject.schemaName], gotTypes);
         })
     }
 
@@ -42,7 +42,7 @@ export class GotObjectValidationService {
      * @param  {Map<GotTypeDto>} gotTypes
      * @returns void
      */
-    private validateObject(gotData: any, gotType: GotTypeDto, gotTypes: Map<GotTypeDto>): void {
+    private validateData(gotData: any, gotType: GotTypeDto, gotTypes: Map<GotTypeDto>): void {
         // validate GotType on object-level first
         this.validateGotType(gotType, gotData);
         // on GotProperties =>
@@ -56,7 +56,7 @@ export class GotObjectValidationService {
             else {
                 let nestedObjectsToCheck: any = {};
                 nestedObjectsToCheck[gotProperty.type as string] = gotData[gotType.name][gotProperty.type as string];
-                this.validateObject(nestedObjectsToCheck, gotTypes[gotProperty.type as string], gotTypes);
+                this.validateData(nestedObjectsToCheck, gotTypes[gotProperty.type as string], gotTypes);
             }
             // remove checked attribute from verification object
             if (gotData[gotType.name][gotProperty.name]) {
