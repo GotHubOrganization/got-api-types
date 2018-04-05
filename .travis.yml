@@ -12,6 +12,7 @@ install:
   - pip install --user awscli
   - export PATH=$PATH:$HOME/.local/bin
 deploy:
+  provider: script
   script:
     - GIT_HEAD="$(git rev-parse --short HEAD)"
     - eval ${DOCKER_LOGIN}
@@ -21,3 +22,5 @@ deploy:
     - docker push $DOCKER_IMAGE_URL:latest
     - docker push $DOCKER_IMAGE_URL:$GIT_HEAD
     - eval ${UPDATE_SERVICE}
+  on:
+    branch: "develop"
