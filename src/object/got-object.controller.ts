@@ -6,7 +6,7 @@ import { ApiResponse } from '@nestjs/swagger';
 import { GotObjectStorageService } from './got-object-storage.service';
 import { GotObjectValidationService } from './got-object-validation.service';
 
-@Controller('objects/object')
+@Controller('types/object')
 @UseInterceptors(TransformInterceptor)
 export class GotObjectController {
 
