@@ -1,10 +1,13 @@
 import { Module, NestModule, MiddlewaresConsumer } from '@nestjs/common';
 import { GotTypeModule } from './type/got-type.module';
-import { GotTypeController } from './type/got-type.controller';
 import { ApplicationController } from './app.controller';
+import { GotObjectModule } from './object/got-object.module';
 
 @Module({
-    imports: [GotTypeModule],
+    imports: [
+        GotTypeModule,
+        GotObjectModule
+    ],
     controllers: [ApplicationController]
 })
 export class ApplicationModule {

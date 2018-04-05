@@ -7,15 +7,19 @@ import {
 } from '@nestjs/common';
 import { validate } from 'class-validator';
 import { plainToClass } from 'class-transformer';
-import { GotTypeDto } from './dto/got-type.dto';
-import { Map } from '../common/utils/map';
+import { GotTypeDto } from '../dto/got-type.dto';
+import { Map } from '../../common/utils/map';
 
 /**
  * Pipe implementation that is called to validate objects based on the class-validator decorators
  */
 @Pipe()
 export class GotTypePipe implements PipeTransform<any> {
-
+    
+    /**
+     * @param  {any[]} plainGotTypes
+     * @param  {ArgumentMetadata} metadata
+     */
     async transform(plainGotTypes: any[], metadata: ArgumentMetadata) {
         let result: Map<GotTypeDto> = {};
         for (const plainGotType of plainGotTypes) {
@@ -27,7 +31,9 @@ export class GotTypePipe implements PipeTransform<any> {
     /**
      * Receives GotType Object, which might have subobject-definitions in it 
      * and extracts those definitions. Then saves them in flattenedObjects-Array 
-     * @param plainGotType
+     * @param  {any} plainGotType
+     * @param  {Map<GotTypeDto>={}} flatGotTypes
+     * @returns void
      */
     private extractTypes(plainGotType: any, flatGotTypes: Map<GotTypeDto> = {}): void {
         for (let property of plainGotType.properties) {

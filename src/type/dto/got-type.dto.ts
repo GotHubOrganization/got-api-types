@@ -9,9 +9,15 @@ export class GotTypeDto {
     @IsNotEmpty()
     readonly name: string;
 
+    @ApiModelProperty({ type: Object, isArray: true })
+    readonly validators: any[];
+
     @ApiModelProperty({ type: GotPropertyDto })
     @ValidateNested()
     @Type(() => GotPropertyDto)
     readonly properties: GotPropertyDto[];
+
+    @ApiModelProperty({ type: Boolean })
+    readonly required: boolean;
 
 }

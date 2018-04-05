@@ -21,5 +21,11 @@ export class GotPropertyDto {
     @IsEnum(GotPropertyAccess)
     readonly access: GotPropertyAccess;
 
+    @ApiModelProperty({ type: Object, isArray: true })
+    readonly validators: any[];
+
+    @ApiModelProperty({ type: Boolean })
+    readonly required: boolean;
+
 }
 

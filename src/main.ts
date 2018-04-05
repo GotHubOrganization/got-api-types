@@ -23,7 +23,7 @@ async function bootstrap() {
     const document = SwaggerModule.createDocument(app, options);
     // swagger can be accessed on the server on the '/api' path
     SwaggerModule.setup('/api', app, document);
-    
+
     app.useGlobalPipes(new ValidationPipe());
     
     // Start Node application on defined port

@@ -1,12 +1,10 @@
-import * as AWS from 'aws-sdk';
 import { Get, Controller, Param, Put, Body, UseInterceptors, HttpException, HttpStatus, UsePipes, ValidationPipe } from '@nestjs/common';
-import { S3Utils } from '../common/utils/s3-utils';
 import { GotTypeDto } from './dto/got-type.dto';
 import { TransformInterceptor } from '../common/interceptors/transform.interceptor';
 import { GotTypeService } from './got-type.service';
 import { GotPropertyDto } from './dto/got-property.dto';
 import { Map } from '../common/utils/map';
-import { GotTypePipe } from './got-type.pipe';
+import { GotTypePipe } from './pipes/got-type.pipe';
 
 @Controller('types/type')
 @UseInterceptors(TransformInterceptor)
