@@ -17,6 +17,6 @@ script:
   - docker build --no-cache -t $DOCKER_IMAGE_NAME:latest -t $DOCKER_IMAGE_NAME:$GIT_HEAD --build-arg GIT_HEAD=$GIT_HEAD .
 deploy:
   provider: script
-  script: ci/deploy.sh
+  script: bash ci/deploy.sh
   on:
     branch: "develop"
