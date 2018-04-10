@@ -25,11 +25,11 @@ export class GotObjectStorageService {
      * @returns Promise<any>
      */
     public store(gotObject: GotObjectDto): Promise<any> {
-        return this.s3Utils.putObjectToS3(gotObject.id, gotObject,
+        return this.s3Utils.putObjectToS3(gotObject.data.id, gotObject,
             { ServerSideEncryption: 'aws:kms' })
             .then((response) => {
                 console.log('S3 storage response ' + JSON.stringify(response));
-                return { id: gotObject.id };
+                return { id: gotObject.data.id };
             });
     }
 

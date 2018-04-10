@@ -6,7 +6,7 @@ import { ApiResponse } from '@nestjs/swagger';
 import { GotObjectStorageService } from './got-object-storage.service';
 import { GotObjectValidationService } from './got-object-validation.service';
 
-@Controller('types/object')
+@Controller('objects/object')
 @UseInterceptors(TransformInterceptor)
 export class GotObjectController {
 
@@ -28,9 +28,13 @@ export class GotObjectController {
 
     @ApiResponse({ status: 201, description: 'The record has been successfully created.' })
     @ApiResponse({ status: 400, description: 'Bad Request.' })
-    @Post('/')
-    public storeObject(@Body() gotObject: GotObjectDto): Promise<any> {
-        gotObject.id = this.getNewObjectId();
+    @Post('/:type')
+    public storeObject(@Param() params: any, 
+                        @Body() body: any): Promise<any> {
+        let gotObject: GotObjectDto = new GotObjectDto();
+        gotObject.type = params.type;
+        gotObject.data = body;
+        gotObject.data.id = this.getNewObjectId();
         gotObject.timestamp = new Date();
         return this.gotObjectValidationService.validate(gotObject)
         .then(() => {
