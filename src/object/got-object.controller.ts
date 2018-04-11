@@ -17,6 +17,11 @@ export class GotObjectController {
         private gotObjectStorageService: GotObjectStorageService) {
     }
 
+    /**
+     * @param  {} @Param(
+     * @param  {any} params
+     * @returns Promise
+     */
     @ApiResponse({ status: 200, description: 'The record has been found.' })
     @ApiResponse({ status: 404, description: 'The record has not been found.' })
     @ApiResponse({ status: 400, description: 'Bad Request.' })
@@ -25,6 +30,13 @@ export class GotObjectController {
         return this.gotObjectStorageService.get(params.id);
     }
 
+    /**
+     * @param  {} @Param(
+     * @param  {any} params
+     * @param  {} @Body(
+     * @param  {any} body
+     * @returns Promise
+     */
     @ApiResponse({ status: 201, description: 'The record has been successfully created.' })
     @ApiResponse({ status: 400, description: 'Bad Request.' })
     @Post('/:type')

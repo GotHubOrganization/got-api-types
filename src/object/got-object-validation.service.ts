@@ -21,8 +21,9 @@ export class GotObjectValidationService {
      /**
      * Validates the gotObject with the respective schemas
      * throws a Bad Request Error if validation fails
-     * @param  {GotObjectDto} gotObject
-     * @returns Promise<void>
+     * @param  {string} type
+     * @param  {any} data
+     * @returns Promise
      */
     public validate(type: string, data: any): Promise<GotObjectDto> {
         let gotObject: GotObjectDto = new GotObjectDto();
@@ -44,7 +45,7 @@ export class GotObjectValidationService {
      * Validates the gotObject data structure based on the schema structure rules
      * throws a Bad Request Error if validation fails
      * @param  {any} gotData
-     * @param  {GotTypeDto} gotType
+     * @param  {string} gotTypeName
      * @param  {Map<GotTypeDto>} gotTypes
      * @returns void
      */
@@ -90,8 +91,8 @@ export class GotObjectValidationService {
      /**
      * Validates gotData against a GotType
      * throws a Bad Request Error if validation fails
-     * @param gotType
-     * @param gotData
+     * @param  {GotPropertyDto} gotProperty
+     * @param  {any} gotData
      * @returns void
      */
     private validateComplexProperty(gotProperty: GotPropertyDto, gotData: any): void {
@@ -109,6 +110,7 @@ export class GotObjectValidationService {
     /**
      * Validates a primitive property against a (sub)-gotData
      * throws a Bad Request Error if validation fails
+     * @param  {GotTypeDto} gotType
      * @param  {GotPropertyDto} gotProperty
      * @param  {any} gotData
      * @returns void
