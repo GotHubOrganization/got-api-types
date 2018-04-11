@@ -24,13 +24,19 @@ export class GotObjectValidationService {
      * @param  {GotObjectDto} gotObject
      * @returns Promise<void>
      */
-    public validate(gotObject: GotObjectDto): Promise<void> {
+    public validate(type: string, data: any): Promise<GotObjectDto> {
+        let gotObject: GotObjectDto = new GotObjectDto();
+        gotObject.type = type;
+        gotObject.data = data;
         return this.gotTypeService.get(gotObject.type)
         .then(gotTypes => {
             // clone the object for validation. Has to be cloned because during the validation the object will be manipulated
             let gotValidationClone: GotObjectDto = JSON.parse(JSON.stringify(gotObject));
             // fetched all respective gotTypeDefinitions, do structure validation based on them
             return this.validateData(gotValidationClone.data, gotObject.type, gotTypes);
+        })
+        .then(() => {
+            return gotObject;
         })
     }
 
@@ -79,12 +85,6 @@ export class GotObjectValidationService {
         if (gotData[gotType.name]) {
             delete gotData[gotType.name];
         }
-        //check if any objects have been provided that dont match the schema
-        // if (!this.isEmptyObject(gotData)) {
-        //     throw new HttpException('Following objects you provided do not match the schema definition: ' 
-        //     +  JSON.stringify(gotData),
-        //     HttpStatus.BAD_REQUEST);              
-        // }
     }
 
      /**

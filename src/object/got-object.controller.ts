@@ -1,7 +1,6 @@
 import { Get, Controller, Param, Body, UseInterceptors, HttpException, HttpStatus, UsePipes, ValidationPipe, Post } from '@nestjs/common';
 import { GotObjectDto } from './dto/got-object.dto';
 import { TransformInterceptor } from '../common/interceptors/transform.interceptor';
-import uuid = require('uuid-v4');
 import { ApiResponse } from '@nestjs/swagger';
 import { GotObjectStorageService } from './got-object-storage.service';
 import { GotObjectValidationService } from './got-object-validation.service';
@@ -31,23 +30,10 @@ export class GotObjectController {
     @Post('/:type')
     public storeObject(@Param() params: any, 
                         @Body() body: any): Promise<any> {
-        let gotObject: GotObjectDto = new GotObjectDto();
-        gotObject.type = params.type;
-        gotObject.data = body;
-        gotObject.data.id = this.getNewObjectId();
-        gotObject.timestamp = new Date();
-        return this.gotObjectValidationService.validate(gotObject)
-        .then(() => {
+        return this.gotObjectValidationService.validate(params.type, body)
+        .then((gotObject) => {
             return this.gotObjectStorageService.store(gotObject);
         });
-    }
-
-    /**
-     * Generates a new UUIDv4
-     * @returns string
-     */
-    private getNewObjectId(): string {
-        return uuid();
     }
 }
 
