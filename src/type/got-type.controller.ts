@@ -15,6 +15,7 @@ export class GotTypeController {
 
     @Get('/:name')
     public getType(@Param() params: any): Promise<Map<GotTypeDto>> {
+        console.log(params.name);
         return this.gotTypeService.get(params.name);
     }
 
