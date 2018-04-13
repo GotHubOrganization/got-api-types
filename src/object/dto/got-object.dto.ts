@@ -1,21 +1,19 @@
 import { Type } from 'class-transformer';
 import { IsString, IsNumber, IsDate, IsNotEmpty, ValidateNested, IsEmpty } from 'class-validator';
 import { ApiModelProperty } from '@nestjs/swagger';
+import { ObjectData } from './interfaces/object-data.interface';
 
 export class GotObjectDto {
-
-    @IsEmpty()
-    id: string;
 
     @IsEmpty()
     timestamp: Date;
 
     @ApiModelProperty({ type: String })
-    @IsNotEmpty()
-    readonly schemaName: string;
+    @IsEmpty()
+    type: string;
 
     @ApiModelProperty({ type: Object })
     @Type(() => Object)
-    readonly data: any;
+    data: ObjectData;
 
 }

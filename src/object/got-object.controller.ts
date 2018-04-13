@@ -1,12 +1,11 @@
 import { Get, Controller, Param, Body, UseInterceptors, HttpException, HttpStatus, UsePipes, ValidationPipe, Post } from '@nestjs/common';
 import { GotObjectDto } from './dto/got-object.dto';
 import { TransformInterceptor } from '../common/interceptors/transform.interceptor';
-import uuid = require('uuid-v4');
 import { ApiResponse } from '@nestjs/swagger';
 import { GotObjectStorageService } from './got-object-storage.service';
 import { GotObjectValidationService } from './got-object-validation.service';
 
-@Controller('types/object')
+@Controller('objects/object')
 @UseInterceptors(TransformInterceptor)
 export class GotObjectController {
 
@@ -18,6 +17,11 @@ export class GotObjectController {
         private gotObjectStorageService: GotObjectStorageService) {
     }
 
+    /**
+     * @param  {} @Param(
+     * @param  {any} params
+     * @returns Promise
+     */
     @ApiResponse({ status: 200, description: 'The record has been found.' })
     @ApiResponse({ status: 404, description: 'The record has not been found.' })
     @ApiResponse({ status: 400, description: 'Bad Request.' })
@@ -26,24 +30,22 @@ export class GotObjectController {
         return this.gotObjectStorageService.get(params.id);
     }
 
+    /**
+     * @param  {} @Param(
+     * @param  {any} params
+     * @param  {} @Body(
+     * @param  {any} body
+     * @returns Promise
+     */
     @ApiResponse({ status: 201, description: 'The record has been successfully created.' })
     @ApiResponse({ status: 400, description: 'Bad Request.' })
-    @Post('/')
-    public storeObject(@Body() gotObject: GotObjectDto): Promise<any> {
-        gotObject.id = this.getNewObjectId();
-        gotObject.timestamp = new Date();
-        return this.gotObjectValidationService.validate(gotObject)
-        .then(() => {
+    @Post('/:type')
+    public storeObject(@Param() params: any, 
+                        @Body() body: any): Promise<any> {
+        return this.gotObjectValidationService.validate(params.type, body)
+        .then((gotObject) => {
             return this.gotObjectStorageService.store(gotObject);
         });
-    }
-
-    /**
-     * Generates a new UUIDv4
-     * @returns string
-     */
-    private getNewObjectId(): string {
-        return uuid();
     }
 }
 
