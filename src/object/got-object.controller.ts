@@ -5,7 +5,7 @@ import { ApiResponse } from '@nestjs/swagger';
 import { GotObjectStorageService } from './got-object-storage.service';
 import { GotObjectValidationService } from './got-object-validation.service';
 
-@Controller('objects/object')
+@Controller('types/object') // Infrastructure must be changed to have a clean route.
 @UseInterceptors(TransformInterceptor)
 export class GotObjectController {
 
@@ -13,7 +13,7 @@ export class GotObjectController {
      * @param  {GotObjectValidationService} privategotObjectValidationService
      * @returns GotObjectValidationService
      */
-    constructor(private gotObjectValidationService: GotObjectValidationService, 
+    constructor(private gotObjectValidationService: GotObjectValidationService,
         private gotObjectStorageService: GotObjectStorageService) {
     }
 
@@ -39,13 +39,13 @@ export class GotObjectController {
      */
     @ApiResponse({ status: 201, description: 'The record has been successfully created.' })
     @ApiResponse({ status: 400, description: 'Bad Request.' })
-    @Post('/:type')
-    public storeObject(@Param() params: any, 
-                        @Body() body: any): Promise<any> {
+    @Post('/:type/:id?')
+    public storeObject(@Param() params: any,
+        @Body() body: any): Promise<any> {
         return this.gotObjectValidationService.validate(params.type, body)
-        .then((gotObject) => {
-            return this.gotObjectStorageService.store(gotObject);
-        });
+            .then((gotObject) => {
+                return this.gotObjectStorageService.store(gotObject, params.id);
+            });
     }
 }
 
