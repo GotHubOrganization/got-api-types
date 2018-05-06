@@ -63,3 +63,6 @@ start-local.sh
 
 # Dist folder
 dist/
+
+scratch.*
+travis.env.sh

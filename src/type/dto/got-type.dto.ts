@@ -13,5 +13,4 @@ export class GotTypeDto {
     @ValidateNested()
     @Type(() => GotPropertyDto)
     readonly properties: GotPropertyDto[];
-
 }
