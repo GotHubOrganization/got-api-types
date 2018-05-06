@@ -20,13 +20,16 @@ export class GotObjectStorageService {
     }
 
     /**
-     * puts a Got Object Instance  to S3
+     * puts a Got Object Instance  to S3. If no id is given a new id will be
+     * created. Calling this method without id would mean to create a new object whereas
+     * calling it with id would mean to update an existing object.
      * Must return a promise to build a promise chain
      * @param {GotObjectDto} gotObject
+     * @param {String} id 
      * @returns Promise<any>
      */
-    public store(gotObject: GotObjectDto): Promise<any> {
-        gotObject.data.id = this.getNewObjectId();
+    public store(gotObject: GotObjectDto, id?: string): Promise<any> {
+        gotObject.data.id = id ? id : this.getNewObjectId();
         gotObject.timestamp = new Date();
         return this.s3Utils.putObjectToS3(gotObject.data.id, gotObject,
             { ServerSideEncryption: 'aws:kms' })
